@@ -2,3 +2,4 @@ sec-api
 beautifulsoup4
 pandas
 yfinance
+nltk
