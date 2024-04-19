@@ -51,60 +51,6 @@ for ticker, counts in average_sentiment_word_counts.items():
     print(f"Average number of positive words in 'filing_data-Preprocessed' column for {ticker}: {counts['positive']}")
     print(f"Average number of negative words in 'filing_data-Preprocessed' column for {ticker}: {counts['negative']}")
 
-# Calculate the z-score of average words
-# average_word_counts_array = np.array(list(average_word_counts.values()))
-# mean_avg_word_count = np.mean(average_word_counts_array)
-# std_avg_word_count = np.std(average_word_counts_array)
-#
-# # Calculate z-scores for each row
-# z_scores_avg_word_counts = {}
-# for ticker, df in ticker_dfs.items():
-#     # Calculate z-score for each row
-#     z_scores = (df['processed_filing_data'].str.split().apply(len) - mean_avg_word_count) / std_avg_word_count
-#     z_scores_avg_word_counts[ticker] = z_scores
-#
-# # Print or use z-scores as needed
-# for ticker, z_scores in z_scores_avg_word_counts.items():
-#     print(f"Z-scores of average word counts for {ticker}:")
-#     print(z_scores)
-#
-# # Calculate z-score of positive words
-# positive_word_counts_array = np.array([counts['positive'] for counts in average_sentiment_word_counts.values()])
-# mean_positive_word_count = np.mean(positive_word_counts_array)
-# std_positive_word_count = np.std(positive_word_counts_array)
-#
-# # Calculate z-scores for each row
-# z_scores_positive_words = {}
-# for ticker, df in ticker_dfs.items():
-#     # Calculate z-score for positive words for each row
-#     positive_counts = df['processed_filing_data'].apply(lambda x: sum(1 for word in nltk.word_tokenize(x.lower()) if word in positive_words))
-#     z_scores = (positive_counts - mean_positive_word_count) / std_positive_word_count
-#     z_scores_positive_words[ticker] = z_scores
-#
-# # Print or use z-scores as needed
-# for ticker, z_scores in z_scores_positive_words.items():
-#     print(f"Z-scores of positive word counts for {ticker}:")
-#     print(z_scores)
-#
-# # Calculate z-score of negative words
-# negative_word_counts_array = np.array([counts['negative'] for counts in average_sentiment_word_counts.values()])
-# mean_negative_word_count = np.mean(negative_word_counts_array)
-# std_negative_word_count = np.std(negative_word_counts_array)
-#
-# # Calculate z-scores for each row
-# z_scores_negative_words = {}
-# for ticker, df in ticker_dfs.items():
-#     # Calculate z-score for negative words for each row
-#     negative_counts = df['processed_filing_data'].apply(lambda x: sum(1 for word in nltk.word_tokenize(x.lower()) if word in negative_words))
-#     z_scores = (negative_counts - mean_negative_word_count) / std_negative_word_count
-#     z_scores_negative_words[ticker] = z_scores
-#
-# # Print or use z-scores as needed
-# for ticker, z_scores in z_scores_negative_words.items():
-#     print(f"Z-scores of negative word counts for {ticker}:")
-#     print(z_scores)
-
-
 positive_word_counts_array = np.array([counts['positive'] for counts in average_sentiment_word_counts.values()])
 mean_positive_word_count = np.mean(positive_word_counts_array)
 std_positive_word_count = np.std(positive_word_counts_array)
