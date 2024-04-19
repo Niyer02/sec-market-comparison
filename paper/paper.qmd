@@ -1,79 +1,287 @@
 ---
-title: "Is Management Trying to Cover up the Performance of Their Company?"
-subtitle: "Unveiling Red Flags in Management's Discussion and Analysis"
+title: "Corporate Management's Bias: The Pitfalls in Financial Filings"
+subtitle: "Unveiling Corporate Bias in Management Discussions in Financial Filings"
 author: 
   - Nikhil Iyer
 thanks: "Code and data are available at: https://github.com/Niyer02/sec-market-comparison"
 date: today
 date-format: long
-abstract: "Every quarter, management must release a document outlining the performance of their company, however, these documents often reveal nothing to the naked eye. Through lengthy documents, abundant filler words, and a lack of transparency, understanding these red flags is crucial for stakeholders to make informed decisions."
+abstract: "Every quarter, management must release a document outlining the performance of their company. Among this document the Management Discussion and Analysis (MD&A) section serves as an opportunity for a company's management team to discuss the inner workings of the company. However, the efficacy of these documents is often compromised by a variety of factors. Abundant filler words, complicated jargon, and an extreme positive bias make using these documents difficult. This paper conducts a statistical analysis of SEC documents from 5 of the biggest tech companies in the world. It reveals that management often has an extreme positive bias, making it difficult to identify the negative aspects of the company. This finding is important as it highlights challenges that shareholders face when assessing the true performance of a company, which could impact portfolio management strategies and investment decisions"
 format: pdf
 number-sections: true
+header-includes:
+      - \usepackage{float}
+      - \floatplacement{table}{H}
+      - \floatplacement{figure}{H}
 bibliography: references.bib
 ---
 
-```{r}
-#| include: false
-#| warning: false
-#| message: false
-
-```
-
-
 # Introduction
 
-While blatant attempts to conceal aspects of their company have often become headlines, the subtler attempts often go
-under the radar. More filler words and longer sections have become a staple in almost every SEC filing. Understanding these subtle flags
-is paramount for stakeholders to safeguard their portfolios.
+Big scandals make headlines, however it is often the subtle tactics that pose the greatest risk. A company must file a 10Q every quarter, and such a document is released to the public. These documents contain important information to the shareholders and the street. Oftentimes, the contents of this document along with the earnings report will dictate the company's performance in the stock market. Understanding how to use 10Qs specifically the MD&A section is essential for shareholders to make an informed investment decision.
 
-This paper aims to understand SEC filings, and demonstrate the correlation between the Management Discussion and Analysis (MD&A) section, and the value of the stock. Using R [@citeR], we are able to process the retrieved data, and build a model that accurately represents the trend between MD&A's and the price of the stock.
+This paper examines the Management Discussion and Analysis (MD&A) section of the Securities and Exchange Commission (SEC) filings. There is very little information on how to best use the MD&A section, however, this paper analyzes the MD&A sections of SEC filings and unveils a concerning trend: the presence of an extreme positive bias and constant downplay of negative aspects. The estimand in this paper is the extent to which management biases their discussions in the MD&A section of SEC filings while obscuring the negative aspects. By revealing the subtle strategies management uses, this study aims to empower shareholders with the knowledge and tools needed in the corporate world. This study is also presented to encourage management to engage in these practices less frequently or drop them altogether.
 
+Firstly this paper will go over how the data (\ref{sec-data}) was retrieved, cleaned, and processed into workable features. The data retrieval and cleaning process was heavily inspired by TELLING STORIES WITH DATA [@rohan]. Then it will explore the model (\ref{sec-model}) intended to predict the gain or loss in a company's stock price. The results section will sum up the findings, and the paper ends with the final discussion points. The data was gathered in `Python 3` [@python], then further parsed in `R` [@citeR] using `tidyverse` [@citetidy], `dplyr`[@dplyr], and `readr` [@readr]. The features were plotted with `ggplot` [@ggplot].
 
 # Data {#sec-data}
+The data for this paper was collected in `Python 3` [@python]. The SEC filing data was retrieved using the SEC API [@SEC], and the financial data was retried using the `yfinance` package in Python [@python]. Overall the raw data set was composed of a `ticker` column, `MD&A filing date` column, and the actual MD&A text.
+
+The financial data consisted of four main columns. The first is the difference between the stock's price 1-week after the SEC filing and 1-week before the SEC filing. This can be interpreted as the Information Given in an MD&A. A high value in this column indicates that the SEC filing had a significant impact on the stock, and the mean of this column reflects this. The remaining three columns are the 1-month, 3-month, and 6-month price changes in the stock. There were 10 tech companies chosen, and all 10Qs were retrieved from 2019 to 2023. This resulted in 15 10Qs per company, with the final data set being 150 rows.
+
+Due to the length of the MD&A sections, they could not be used directly. Instead the `average word count`, `average positive word count`, and `average negative word count` were all computed, and z-scores were computed for each row. The result is three columns with information of how far in either direction a data point is from the mean in the three classes mentioned.
 
 
 ```{r}
-#| label: fig-bills
-#| fig-cap: Bills of penguins
-#| echo: false
-
-```
-
-
-```{r}
-#| label: fig-planes
-#| fig-cap: Relationship between wing length and width
+#| label: fig-data1
+#| fig-cap: Information Given Distribution
 #| echo: false
 #| warning: false
 #| message: false
 
+library(ggplot2)
+library(tidyverse)
+
+# Create a data frame with your data
+data <- read_csv("../data/analysis_data/analysis_data.csv")
+
+# Convert filing_date to Date class
+data$filing_date <- as.Date(data$filing_date)
+
+# Create individual plots
+plot_IG <- ggplot(data, aes(x = filing_date, y = IG)) +
+  geom_point() +
+  labs(title = "Information Given", x = "Filing Date", y = "Information Given")
+
+
+# Output the plots individually
+print(plot_IG)
+
 ```
+```{r}
+#| label: fig-data2
+#| fig-cap: Positive Word Count Distribution
+#| echo: false
+#| warning: false
+#| message: false
+
+library(ggplot2)
+library(tidyverse)
+
+# Create a data frame with your data
+data <- read_csv("../data/analysis_data/analysis_data.csv")
+
+# Convert filing_date to Date class
+data$filing_date <- as.Date(data$filing_date)
+
+plot_z_score_positive <- ggplot(data, aes(x = filing_date, y = z_score_positive)) +
+  geom_point() +
+  labs(title = "Z-Score of Positive Words", x = "Filing Date", y = "Z-Score Positive")
+
+print(plot_z_score_positive)
 
 
-# Model
+```
+```{r}
+#| label: fig-data3
+#| fig-cap: Negative Word Count Distribution
+#| echo: false
+#| warning: false
+#| message: false
+
+library(ggplot2)
+library(tidyverse)
+
+# Create a data frame with your data
+data <- read_csv("../data/analysis_data/analysis_data.csv")
+
+# Convert filing_date to Date class
+data$filing_date <- as.Date(data$filing_date)
 
 
-## Model set-up
+plot_z_score_negative <- ggplot(data, aes(x = filing_date, y = z_score_negative)) +
+  geom_point() +
+  labs(title = "Z-Score of Negative Words", x = "Filing Date", y = "Z-Score Negative")
+
+print(plot_z_score_negative)
+
+
+```
+```{r}
+#| label: fig-data4
+#| fig-cap: Average Word Count Distribution
+#| echo: false
+#| warning: false
+#| message: false
+
+library(ggplot2)
+library(tidyverse)
+
+# Create a data frame with your data
+data <- read_csv("../data/analysis_data/analysis_data.csv")
+
+# Convert filing_date to Date class
+data$filing_date <- as.Date(data$filing_date)
+
+plot_z_score_avg_word_count <- ggplot(data, aes(x = filing_date, y = z_score_avg_word_count)) +
+  geom_point() +
+  labs(title = "Z-Score of Average Word Count", x = "Filing Date", y = "Z-Score Avg Word Count")
+
+print(plot_z_score_avg_word_count)
+
+```
+@fig-data1, @fig-data2, @fig-data3, and @fig-data4 shows the scatter plots of 4 features. @fig-data1 shows the one-week price change in stock during the one-week window of the SEC filing. As seen in the@fig-data1, an SEC filing has a large impact on the stock price, as in such a short window within the SEC filing release the stock prices jumped in almost all cases. All of the graphs above show very little, if any correlation. This is a surprising result. The stock price increased 10%-20% in most cases, however, there was no change in the number of uses of positive or negative words as explained by @fig-dist.
+
+
+
+```{r}
+#| label: tbl-cor
+#| tbl-ca: Relationship between IG and z-scores with legend
+#| echo: false
+#| warning: false
+#| message: false
+
+library(dplyr)
+library(knitr)
+
+# Select only the "IG" and "z-score" columns
+selected_data <- select(data, IG, z_score_positive, z_score_negative, z_score_avg_word_count)
+
+# Calculate the correlation matrix
+correlation_matrix <- cor(selected_data)
+
+# Print the correlation matrix as a table
+kable(correlation_matrix, caption = "Correlation Matrix between IG and z-scores")
+```
+We confirm this hypothesis by examining the correlation matrix in @tbl-cor. With relation to Information Given, the z-score columns do not correlate at all, however, we do see a strong positive correlation between the positive word count and average word count. Such correlation is the basis of this study. From the figures in @fig-dist, we observe that the distribution of the growth variables is very similar. These graphs tell an interesting story when compared to the previous features. Although stock price is increasing, there was no increase in the count of positive words, and no decrease in the count of negative words, even among large price increases.
+
+```{r}
+#| label: fig-dist
+#| fig-cap: Distribution of Stock Price Growth over Time Periods
+#| echo: false
+#| warning: false
+#| message: false
+
+
+library(ggplot2)
+library(tidyverse)
+library(gridExtra)
+
+
+# Create histograms for each column
+hist_1_month <- ggplot(data, aes(x = `1-Month`)) +
+  geom_histogram(binwidth = 2, fill = "blue", color = "black") +
+  labs(title = "1-Month", x = "1-Month", y = "Frequency")
+
+hist_3_month <- ggplot(data, aes(x = `3-Month`)) +
+  geom_histogram(binwidth = 2, fill = "green", color = "black") +
+  labs(title = "3-Month", x = "3-Month", y = "Frequency")
+
+hist_6_month <- ggplot(data, aes(x = `6-Month`)) +
+  geom_histogram(binwidth = 5, fill = "red", color = "black") +
+  labs(title = "6-Month", x = "6-Month", y = "Frequency")
+
+# Combine histograms into a single plot
+combined_histograms <- cowplot::plot_grid(hist_1_month, hist_3_month, hist_6_month, nrow = 1)
+
+# Print the combined plot
+print(combined_histograms)
+```
+From examining the data in @fig-data and @fig-dist, we can see that the lack of correlation is worrying. An increase in stock price should lead to more positive comments and a decrease in negative comments. However this is not the case, and this is further reinforced in the model (\ref{sec-model}) chosen.
+
+# Model {#sec-model}
+The goal of our modeling strategy is to attempt to find a correlation between `Z-Score of Positive Word Count`, `Z-Score of Negative Word Count`, and `Z-Score of Average Word Count`, and to then build a model to predict the percentage a stock will increase or decrease in a given time frame. For this, a Random Forest Model was settled on to predict the amount of change in a stock price, however, due to its simplistic nature, it was not able to accurately model the data. Linear models as well as Gaussian models were also trained [@citerstanarm], however, they performed worse overall than the Random Forest. The model set-up section (\ref{sec-set}) will go over the setup of a Random Forest, however the data itself can be better modeled by a linear regression model, where we can see the true scale of the lack of correlation between the features.
+
+For the purpose of this model, the `3-month` and `6-month` features were omitted in an attempt to obtain the highest accuracy model possible. Thus, the Random Forest model was trained to predict `1-Month` given the predictors: `z_score_positive`, `z_score_negative`, and `z_score_avg_word_count`.
+
+## Prediction Model set-up {#sec-set}
+Define $y$ as `1-Month`. Then define $x$, $w$, $t$, as `z_score_positive`, `z_score_negative`, and `z_score_avg_word_count` respectively.
+
+\text{Random Forest Model: } $y$ = f($x$, $w$, $t$)
+
+\begin{itemize}
+  \item $y$ represents the target variable (dependent variable).
+  \item $f$ represents the Random Forest model function.
+  \item $x$, $w$, $t$ represent the predictor variables (independent variables).
+\end{itemize}
+
+We run the model in R [@citeR] using the `randomforest` package of `randomForest` [@rf].
 
 ### Model justification
+```{r}
+#| echo: false
+#| label: tbl-eval
+#| tbl-ca: Random Forest Model Evaluation Metrics
+#| eval: true
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(rstanarm)
+library(dplyr)
+library(randomForest)
+library(knitr)
+
+#### Read data ####
+analysis_data <- read_csv("../data/analysis_data/analysis_data.csv")
+
+train_indices <- sample(seq_len(nrow(analysis_data)), 0.8 * nrow(analysis_data))
+
+# Create training and testing datasets
+train_data <- analysis_data[train_indices, ]
+test_data <- analysis_data[-train_indices, ]
+
+# Random Forest Model
+rf_model <- readRDS("../models/random_forest_model.rds")
+
+rf_preds <- predict(rf_model, newdata = test_data)
+mae_rf <- mean(abs(rf_preds - test_data$`1-Month`))
+rmse_rf <- sqrt(mean((rf_preds - test_data$`1-Month`)^2))
+rsq_rf <- 1 - (sum((rf_preds - test_data$`1-Month`)^2) / sum((test_data$`1-Month` - mean(test_data$`1-Month`))^2))
+
+# Create a data frame for the evaluation metrics
+rf_metrics <- data.frame(
+  Metric = c("MAE", "RMSE", "R-squared"),
+  Value = c(mae_rf, rmse_rf, rsq_rf)
+)
+
+# Print the table using kable
+kable(rf_metrics, caption = "Random Forest Model Evaluation Metrics")
+```
+We can see that in @tbl-eval, the Mean Absolute Error (MAE) and the RMSE (Root Mean Squared Error) are relatively low when looking at financial data. Additionally, we have a relatively high R-squared value, however, this is not consistent. The variance of the Random Forest model is very high, so the metrics are not consistent, and when extrapolated to larger data will fail to accurately predict. However, this was the best-performing model, without delving into Transformers.
 
 
 
 # Results
-
-
+The study's result, based on evaluation metrics of a Random Forest model applied to financial data, as well as correlation inferences indicates poor predictive performance when looking at the MD&A alone. This outcome was expected, when looking at the features and plots in (\ref{sec-data}) we saw early on that the correlation between the features did not exist, thus making it almost impossible for a model to accurately find a pattern within the data. The Random Forest parameters can be seen in @tbl-coe.
 ```{r}
-#| echo: false
 #| eval: true
-#| warning: false
+#| echo: false
 #| message: false
-```
-
-```{r}
-#| echo: false
-#| eval: true
-#| label: tbl-modelresults
 #| warning: false
+#| label: tbl-coe
+#| tbl-ca: Random Forest Model Parameters
+
+library(randomForest)
+library(knitr)
+
+# Load the Random Forest model from the RDS file
+rf_model <- readRDS("../models/random_forest_model.rds")
+
+# Extract relevant information
+num_trees <- length(rf_model$forest)
+importance <- rf_model$importance
+mtry <- rf_model$mtry
+
+# Create a data frame with the extracted information
+rf_info <- data.frame(
+  Parameter = c("Number of Trees", "Variable Importance", "mtry"),
+  Value = c(num_trees, paste(names(importance), collapse = ", "), mtry)
+)
+
+# Print the table using kable
+kable(rf_info, caption = "Random Forest Model Parameters and Attributes")
+
 ```
 
 
@@ -81,52 +289,18 @@ This paper aims to understand SEC filings, and demonstrate the correlation betwe
 
 # Discussion
 
-## First discussion point {#sec-first-point}
+## What was learned {#sec-first-point}
+Despite the positive market trends, management tends to keep a positive tone in their Discussions and Filings. This study, although failing to provide an accurate model, suggests that management is making a deliberate effort to downplay negative aspects and constantly keep a positive narrative despite the actual conditions. Another finding is the lack of correlation between the financial data and predictor variables. Typically, higher stock prices can be attributed to positive events in the company, however, such events are not reflected in the MD&A. Due to the constant positive bias, positive events within the company do not get flagged as anything out of the usual. This makes finding negative events extremely difficult as well. There is also an active attempt by management to downplay the negative aspects, which is the reason training a model to predict stock price on biased text data is difficult.
 
+## Weaknesses of this study {#sec-first-point}
+Weaknesses in this study start primarily with the data gathered. The data-gathering process sampled only 10 companies, which were some of the largest technology companies in the world. This resulted in a stock price increase across the entire data set, making a Boolean classification impossible. Additionally, the complex nature of financial data is not able to be modeled by such simple models. Highly advanced Transformers tend to perform better on text data, however, they were out of the scope of this study.
 
-## Second discussion point
+The study's choice of predictor variables also may have overlooked important features. Z-scores provide valuable insight into the relative performance of an MD&A with respect to the data set, however, such simple approaches may have led to a loss of crucial information. Such losses could have been the reason that the model was not as accurate as initially desired. The study also did not account for external factors such as interest rates, inflation, political events, etc.
 
-## Third discussion point
+Finally, the study's reliance on historical data from the specified five-year time frame may limit its applicability to future market conditions.
 
-## Weaknesses and next steps
-
-
-\newpage
-
-\appendix
-
-# Appendix {-}
-
-
-# Additional data details
-
-# Model details {#sec-model-details}
-
-## Posterior predictive check
-
-```{r}
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| label: fig-ppcheckandposteriorvsprior
-#| layout-ncol: 2
-```
-
-## Diagnostics
-
-
-```{r}
-#| echo: false
-#| eval: true
-#| message: false
-#| warning: false
-#| label: fig-stanareyouokay
-#| layout-ncol: 2
-
-```
-
-
+## Next steps
+The next step in this study would be to look at a more complex model. Transformers and LLMs have risen in popularity and for good reason. Transformers can capture the intricacies of text data much better than a simple model like a Random Forest. Exploring models like BERT would be the next step in attempting to understand MD&A's. 
 
 \newpage
 
