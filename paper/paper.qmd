@@ -42,19 +42,15 @@ Due to the length of the MD&A sections, they could not be used directly. Instead
 library(ggplot2)
 library(tidyverse)
 
-# Create a data frame with your data
 data <- read_csv("../data/analysis_data/analysis_data.csv")
 
-# Convert filing_date to Date class
 data$filing_date <- as.Date(data$filing_date)
 
-# Create individual plots
 plot_IG <- ggplot(data, aes(x = filing_date, y = IG)) +
   geom_point() +
   labs(title = "Information Given", x = "Filing Date", y = "Information Given")
 
 
-# Output the plots individually
 print(plot_IG)
 
 ```
@@ -68,10 +64,8 @@ print(plot_IG)
 library(ggplot2)
 library(tidyverse)
 
-# Create a data frame with your data
 data <- read_csv("../data/analysis_data/analysis_data.csv")
 
-# Convert filing_date to Date class
 data$filing_date <- as.Date(data$filing_date)
 
 plot_z_score_positive <- ggplot(data, aes(x = filing_date, y = z_score_positive)) +
@@ -92,10 +86,8 @@ print(plot_z_score_positive)
 library(ggplot2)
 library(tidyverse)
 
-# Create a data frame with your data
 data <- read_csv("../data/analysis_data/analysis_data.csv")
 
-# Convert filing_date to Date class
 data$filing_date <- as.Date(data$filing_date)
 
 
@@ -117,10 +109,8 @@ print(plot_z_score_negative)
 library(ggplot2)
 library(tidyverse)
 
-# Create a data frame with your data
 data <- read_csv("../data/analysis_data/analysis_data.csv")
 
-# Convert filing_date to Date class
 data$filing_date <- as.Date(data$filing_date)
 
 plot_z_score_avg_word_count <- ggplot(data, aes(x = filing_date, y = z_score_avg_word_count)) +
@@ -144,13 +134,11 @@ print(plot_z_score_avg_word_count)
 library(dplyr)
 library(knitr)
 
-# Select only the "IG" and "z-score" columns
 selected_data <- select(data, IG, z_score_positive, z_score_negative, z_score_avg_word_count)
 
 # Calculate the correlation matrix
 correlation_matrix <- cor(selected_data)
 
-# Print the correlation matrix as a table
 kable(correlation_matrix, caption = "Correlation Matrix between IG and z-scores")
 ```
 We confirm this hypothesis by examining the correlation matrix in @tbl-cor. With relation to Information Given, the z-score columns do not correlate at all, however, we do see a strong positive correlation between the positive word count and average word count. Such correlation is the basis of this study. From the figures in @fig-dist, we observe that the distribution of the growth variables is very similar. These graphs tell an interesting story when compared to the previous features. Although stock price is increasing, there was no increase in the count of positive words, and no decrease in the count of negative words, even among large price increases.
@@ -168,7 +156,6 @@ library(tidyverse)
 library(gridExtra)
 
 
-# Create histograms for each column
 hist_1_month <- ggplot(data, aes(x = `1-Month`)) +
   geom_histogram(binwidth = 2, fill = "blue", color = "black") +
   labs(title = "1-Month", x = "1-Month", y = "Frequency")
@@ -184,7 +171,6 @@ hist_6_month <- ggplot(data, aes(x = `6-Month`)) +
 # Combine histograms into a single plot
 combined_histograms <- cowplot::plot_grid(hist_1_month, hist_3_month, hist_6_month, nrow = 1)
 
-# Print the combined plot
 print(combined_histograms)
 ```
 From examining the data in @fig-data and @fig-dist, we can see that the lack of correlation is worrying. An increase in stock price should lead to more positive comments and a decrease in negative comments. However this is not the case, and this is further reinforced in the model (\ref{sec-model}) chosen.
@@ -222,12 +208,10 @@ library(dplyr)
 library(randomForest)
 library(knitr)
 
-#### Read data ####
 analysis_data <- read_csv("../data/analysis_data/analysis_data.csv")
 
 train_indices <- sample(seq_len(nrow(analysis_data)), 0.8 * nrow(analysis_data))
 
-# Create training and testing datasets
 train_data <- analysis_data[train_indices, ]
 test_data <- analysis_data[-train_indices, ]
 
@@ -273,7 +257,6 @@ num_trees <- length(rf_model$forest)
 importance <- rf_model$importance
 mtry <- rf_model$mtry
 
-# Create a data frame with the extracted information
 rf_info <- data.frame(
   Parameter = c("Number of Trees", "Variable Importance", "mtry"),
   Value = c(num_trees, paste(names(importance), collapse = ", "), mtry)
